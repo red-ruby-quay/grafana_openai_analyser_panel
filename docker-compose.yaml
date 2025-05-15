@@ -1,0 +1,29 @@
+networks:
+  llava-net:
+
+services:
+  grafana:
+    extends:
+      file: .config/docker-compose-base.yaml
+      service: grafana
+    networks:
+      - llava-net
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:0.6.8
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama:/root/.ollama
+    networks:
+      - llava-net
+    environment:
+      - OLLAMA_KEEP_ALIVE=5m
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_USE_MMAP=true
+      - OLLAMA_NUM_PARALLEL=4
+    tty: true
+    entrypoint: ["/bin/sh", "/root/.ollama/run_ollama.sh"]
+  
