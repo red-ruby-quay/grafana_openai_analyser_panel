@@ -3,10 +3,10 @@ import ReactMarkdown from 'react-markdown';
 import { PanelProps } from '@grafana/data';
 import { SimpleOptions } from 'types';
 import { css, cx } from '@emotion/css';
-import { useStyles2 } from '@grafana/ui';
+import { LoadingPlaceholder, Spinner, useStyles2 } from '@grafana/ui';
 import html2canvas from 'html2canvas';
 
-interface Props extends PanelProps<SimpleOptions> {}
+interface Props extends PanelProps<SimpleOptions> { }
 
 const getStyles = () => {
   return {
@@ -66,9 +66,12 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height, fie
 
   const [buttonText, setButtonText] = useState('Analyse');
   const [buttonEnabled, setButtonEnabled] = useState(true);
-  const [analysisText, setAnalysisText] = useState('Please choose an analysis option and click Analyse.');
+  const [selectEnabled, setSelectEnabled] = useState(true);
+  const [analysisText, setAnalysisText] = useState('Choose an option and click "Analyse"');
   const [selectedOption, setSelectedOption] = useState('');
   const [prompt, setPrompt] = useState(analysisOptions.Summary);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+
 
   const handleOptionChange = (event: any) => {
     const selected = event.target.value;
@@ -76,16 +79,27 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height, fie
     setPrompt(analysisOptions[selected]);
   };
 
+  const onStopClick = () => {
+    if (abortController) {
+      abortController.abort();
+    }
+  };
+
   const onButtonClick = async () => {
     try {
       setButtonText('Analysing...');
       setButtonEnabled(false);
+      setSelectEnabled(false);
+
+      // Create and store a new AbortController for this fetch request.
+      const controller = new AbortController();
+      setAbortController(controller);
 
       // Generate text output, adjust logging to "false" if needed
       const canvas = await html2canvas(
-        document.body, 
-        { 
-          useCORS: true, 
+        document.body,
+        {
+          useCORS: true,
           logging: true,
         }
       );
@@ -96,6 +110,7 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height, fie
       const rawResponse = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           model: 'llava:7b-v1.6',
           prompt: prompt,
@@ -106,16 +121,24 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height, fie
 
       const rawResponseJSON = await rawResponse.json();
       const parsedResponse = rawResponseJSON.response.trim();
-      const parsedDuration = parseFloat((rawResponseJSON.total_duration / 1e9).toFixed(2));
+      const parsedDuration = parseFloat((rawResponseJSON.total_duration / 1e9).toFixed(3));
 
-      const responseContent = `***DURATION:***${parsedDuration} seconds\n\n***RESPONSE:***\n${parsedResponse}`;
+      const responseContent = `#### DURATION:\n**${parsedDuration}** seconds\n\n#### RESPONSE:\n\n${parsedResponse}`;
       setAnalysisText(responseContent);
 
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('Fetch aborted');
+        setAnalysisText('Analysis aborted by user.');
+      } else {
+        console.error(err);
+        setAnalysisText(`${err}`);
+      }
+    } finally {
+      setAbortController(null);
       setButtonText('Analyse');
       setButtonEnabled(true);
-
-    } catch (err) {
-      console.log(err);
+      setSelectEnabled(true);
     }
   };
 
@@ -125,15 +148,31 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height, fie
       height: ${height}px;
     `)}>
       <div className={cx(styles.options)}>
-        <select id="analysisType" value={selectedOption} onChange={handleOptionChange} className={cx(styles.selectInput)}>
+        <select disabled={!selectEnabled} id="analysisType" value={selectedOption} onChange={handleOptionChange} className={cx(styles.selectInput)}>
           {Object.keys(analysisOptions).map(option => (
             <option key={option} value={option}>{option}</option>
           ))}
         </select>
-        <button onClick={onButtonClick} disabled={!buttonEnabled}>{buttonText}</button>
+        {buttonEnabled ? (
+          <button onClick={onButtonClick}>
+            {buttonText}
+          </button>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Spinner size="xl" />
+            <button onClick={onStopClick}>
+              Stop
+            </button>
+          </div>
+        )}
       </div>
       <div className={cx(styles.outputText)}>
-        {analysisText && (
+        {buttonEnabled ? (
+          ''
+        ) : (
+          <LoadingPlaceholder text="Please wait for a while, it takes a few times..." />
+        )}
+        {buttonEnabled && (
           <ReactMarkdown>
             {analysisText}
           </ReactMarkdown>

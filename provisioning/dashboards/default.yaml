@@ -1,7 +1,7 @@
 apiVersion: 1
 
 providers:
-  - name: 'olla-panels-analyser'
+  - name: 'ollava-panels-analyser'
     type: file
     options:
       path: /etc/grafana/provisioning/dashboards

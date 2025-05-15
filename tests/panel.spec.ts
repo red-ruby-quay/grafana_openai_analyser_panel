@@ -16,7 +16,7 @@ test('should display circle when data is passed to the panel', async ({
 }) => {
   const ds = await readProvisionedDataSource({ fileName: 'datasources.yml' });
   await panelEditPage.datasource.set(ds.name);
-  await panelEditPage.setVisualization('Olla-Panels-Analyser');
+  await panelEditPage.setVisualization('Ollava-Panels-Analyser');
   await expect(page.getByTestId('simple-panel-circle')).toBeVisible();
 });
 
@@ -27,7 +27,7 @@ test('should display series counter when "Show series counter" option is enabled
 }) => {
   const dashboard = await readProvisionedDashboard({ fileName: 'dashboard.json' });
   const panelEditPage = await gotoPanelEditPage({ dashboard, id: '1' });
-  const options = panelEditPage.getCustomOptions('Olla-Panels-Analyser');
+  const options = panelEditPage.getCustomOptions('Ollava-Panels-Analyser');
   const showSeriesCounter = options.getSwitch('Show series counter');
 
   await showSeriesCounter.check();

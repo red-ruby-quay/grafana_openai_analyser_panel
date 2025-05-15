@@ -11,13 +11,13 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../dist:/var/lib/grafana/plugins/yosral-ollapanelsanalyser-panel
+      - ../dist:/var/lib/grafana/plugins/yosral-ollavapanelsanalyser-panel
       - ../provisioning:/etc/grafana/provisioning
-      - ..:/root/yosral-ollapanelsanalyser-panel
+      - ..:/root/yosral-ollavapanelsanalyser-panel
 
     environment:
       NODE_ENV: development
-      GF_LOG_FILTERS: plugin.yosral-ollapanelsanalyser-panel:debug
+      GF_LOG_FILTERS: plugin.yosral-ollavapanelsanalyser-panel:debug
       GF_LOG_LEVEL: debug
       GF_DATAPROXY_LOGGING: 1
-      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: yosral-ollapanelsanalyser-panel
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: yosral-ollavapanelsanalyser-panel

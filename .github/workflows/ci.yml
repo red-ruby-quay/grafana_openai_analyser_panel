@@ -193,7 +193,7 @@ jobs:
       - name: Docker logs
         if: ${{ always() && steps.run-tests.outcome == 'failure' }}
         run: |
-          docker logs yosral-ollapanelsanalyser-panel >& grafana-server.log
+          docker logs yosral-ollavapanelsanalyser-panel >& grafana-server.log
 
       - name: Stop grafana docker
         run: docker compose down

@@ -145,7 +145,7 @@
         }
       ],
       "title": "Sample Panel Title",
-      "type": "yosral-ollapanelsanalyser-panel"
+      "type": "yosral-ollavapanelsanalyser-panel"
     }
   ],
   "preload": false,
@@ -161,7 +161,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Provisioned olla-panels-analyser dashboard",
+  "title": "Provisioned ollava-panels-analyser dashboard",
   "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
   "version": 1,
   "weekStart": ""
